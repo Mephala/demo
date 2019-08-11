@@ -28,6 +28,14 @@
         </dependencies>
         <groupId>org.jetbrains.kotlin</groupId>
       </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.8.0</version>
+        <configuration>
+          <release>11</release>
+        </configuration>
+      </plugin>
     </plugins>
     <sourceDirectory>${project.basedir}/src/main/kotlin</sourceDirectory>
     <testSourceDirectory>${project.basedir}/src/test/kotlin</testSourceDirectory>
@@ -79,7 +87,7 @@
   </parent>
 
   <properties>
-    <java.version>1.8</java.version>
+    <maven.compiler.release>7</maven.compiler.release>
     <kotlin.version>1.2.71</kotlin.version>
   </properties>
 

@@ -1,11 +1,10 @@
 package com.example.demo
 
 import reactor.core.publisher.DirectProcessor
+import reactor.core.publisher.Flux
 import reactor.core.publisher.ParallelFlux
+import reactor.core.publisher.SynchronousSink
 import java.math.BigInteger
-
-
-
 
 
 fun main(args: Array<String>) {
@@ -34,8 +33,8 @@ fun main(args: Array<String>) {
             is PrimeTrueResult -> println("${it.value} is prime")
         }
     }
-    Processor(eventBus,BigInteger("100"))
-    Thread.sleep(15000)
+    Processor(eventBus, BigInteger("100"))
+//    Thread.sleep(15000)
 }
 
 
@@ -74,24 +73,29 @@ class Processor(val eventBus: EventBus, val target: BigInteger) {
 
     }
 
-    private fun primeStart(it: PrimeStart){
+    private fun primeStart(it: PrimeStart) {
+
         val sqrt = it.value.sqrt()
         var start = BigInteger("2")
-        while (start.compareTo(sqrt) < 1) {
-            eventBus.publish(PrimeCheck(start))
-            start = start.add(BigInteger.ONE)
-            if(primeFalseSignal){
-                break
+
+        Flux.generate { sink: SynchronousSink<BigInteger> ->
+            if ((start.compareTo(sqrt) < 1) && !primeFalseSignal) {
+                sink.next(start)
+                start = start.add(BigInteger.ONE)
+            } else {
+                sink.complete()
             }
-        }
+        }.doOnNext {
+            eventBus.publish(PrimeCheck(start))
+        }.doOnComplete {
+            if (!primeFalseSignal) {
+                eventBus.publish(PrimeTrueResult(target))
+            }
+        }.subscribe()
+    }
 
-        eventBus.events.doAfterTerminate{
-            println("Hele hele")
-        }
+    private fun hede() {
 
-//        if(!primeFalseSignal){
-//            eventBus.publish(PrimeTrueResult(target))
-//        }
     }
 
     private fun checkPrimality(it: PrimeCheck) {
